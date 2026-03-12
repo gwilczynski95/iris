@@ -8,7 +8,7 @@ from torch import Tensor
 from nerfstudio.cameras.rays import Frustums, TORCH_DEVICE
 
 @dataclass
-class GenieFrustums(Frustums):
+class IrisFrustums(Frustums):
     """Describes region of space as a frustum."""
     gaussian_t: Float[Tensor, "*bs 1"] = None
     """Where the gaussian was hit"""
@@ -25,13 +25,13 @@ class GenieFrustums(Frustums):
         return pos
     
     @classmethod
-    def get_mock_frustum(cls, device: Optional[TORCH_DEVICE] = "cpu") -> "GenieFrustums":
+    def get_mock_frustum(cls, device: Optional[TORCH_DEVICE] = "cpu") -> "IrisFrustums":
         """Helper function to generate a placeholder frustum.
 
         Returns:
             A size 1 frustum with meaningless values.
         """
-        return GenieFrustums(
+        return IrisFrustums(
             origins=torch.ones((1, 3)).to(device),
             directions=torch.ones((1, 3)).to(device),
             starts=torch.ones((1, 1)).to(device),

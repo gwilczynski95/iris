@@ -10,7 +10,7 @@ from nerfstudio.utils import profiler
 
 # Your custom renderer import
 from iris.sampler import optix_sampler
-from iris.sampler.utils import GenieFrustums
+from iris.sampler.utils import IrisFrustums
 
 def intersect_unit_cube(origins: torch.Tensor, directions: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
     """
@@ -231,7 +231,7 @@ class GaussianIntersectionSampler(Sampler):
         packed_camera_indices = (
             ray_bundle.camera_indices[final_ray_indices] if ray_bundle.camera_indices is not None else None
         )
-        frustums = GenieFrustums(
+        frustums = IrisFrustums(
             origins=packed_origins, directions=packed_directions, starts=starts_world, ends=ends_world, pixel_area=packed_pixel_area, gaussian_t=t_world
         )
         metadata = {"gaussian_indices": final_indices.unsqueeze(-1)}
@@ -268,7 +268,7 @@ class GaussianIntersectionSampler(Sampler):
         starts = torch.zeros((1, 1), device=device)
         ends = torch.ones((1, 1), device=device) * 1e-9
 
-        frustums = GenieFrustums(
+        frustums = IrisFrustums(
             origins=ray_bundle.origins[0:0],
             directions=ray_bundle.directions[0:0],
             starts=starts,
