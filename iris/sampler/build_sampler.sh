@@ -1,0 +1,1 @@
+docker run --gpus all --rm -v $(pwd):/work -w /work nvidia/cuda:11.8.0-devel-ubuntu22.04 ./build_optix.sh
