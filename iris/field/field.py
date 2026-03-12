@@ -27,7 +27,7 @@ from nerfstudio.utils import profiler
 from iris.field.mlp import MLP, FastMLPWithHashEncoding
 
 
-class GenieFastField(Field):
+class IrisFastField(Field):
     
     aabb: Tensor
 

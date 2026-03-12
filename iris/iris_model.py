@@ -23,7 +23,7 @@ from nerfstudio.model_components.renderers import AccumulationRenderer, DepthRen
 from nerfstudio.models.base_model import Model, ModelConfig
 from nerfstudio.utils import colormaps, profiler
 
-from iris.field.field import GenieFastField
+from iris.field.field import IrisFastField
 from iris.sampler.sampler_algorithms import GaussianIntersectionSampler, GaussianIntersectionSamplerConfig
 from iris.utils.viewer_utils import ViewerGaussianSplats, ViewerPointCloud, ViewerAABB
 
@@ -95,7 +95,7 @@ class IrisModel(Model):
     """
 
     config: IrisModelConfig
-    field: GenieFastField
+    field: IrisFastField
 
     def __init__(self, config: IrisModelConfig, **kwargs) -> None:
         super().__init__(config=config, **kwargs)
@@ -113,7 +113,7 @@ class IrisModel(Model):
         seed_points = self.kwargs.get("seed_points", None)
             
         # Initilize field
-        self.field = GenieFastField(
+        self.field = IrisFastField(
             aabb=self.scene_box.aabb,
             appearance_embedding_dim=self.config.appearance_embedding_dim if self.config.use_appearance_embedding else 0,
             num_images=self.num_train_data,
