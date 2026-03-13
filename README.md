@@ -1,11 +1,24 @@
 # IRIS: Intersection-aware Ray-based Implicit Editable Scenes
 
+<p align="center">
+  <a href="https://github.com/gwilczynski95">Grzegorz Wilczyński<sup>1,3</sup></a>, 
+  <a href="https://github.com/MikolajZielinski">Mikołaj Zieliński<sup>2</sup></a>, 
+  <a href="https://scholar.google.com/citations?user=ef2YKtsAAAAJ&hl=pl&oi=sra">Krzysztof Byrski<sup>1</sup></a>, 
+  <a href="https://scholar.google.com/citations?user=eatkjjEAAAAJ&hl=en">Joanna Waczyńska<sup>1,3</sup></a>, 
+  <a href="https://scholar.google.com/citations?user=3XvUbbMAAAAJ&hl=en">Dominik Belter<sup>2</sup></a>, 
+  <a href="https://scholar.google.com/citations?user=0kp0MbgAAAAJ&hl=en">Przemysław Spurek<sup>1,3</sup></a>
+</p>
+
+<p align="center">
+  <a href="https://en.uj.edu.pl/en"><sup>1</sup>Jagiellonian University</a>, 
+  <a href="https://put.poznan.pl/en"><sup>2</sup>Poznań University of Technology</a>, 
+  <a href="https://www.ideas.edu.pl/en/"><sup>3</sup>IDEAS Research Institute</a>, 
+</p>
 
 <p align="center">
   <a href="https://arxiv.org/abs/2508.02831"><img src="https://img.shields.io/badge/arXiv-2508.02831-b31b1b.svg" alt="arXiv"></a>
   <a href="https://mikolajzielinski.github.io/iris.github.io/"><img src="https://img.shields.io/badge/🌐-Project%20Page-blue" alt="Project Page"></a>
 </p>
-
 
 
 <p align="center">
@@ -17,6 +30,10 @@
   <img src="images/garden.gif" width="33%" />
   <img src="images/bicycle.gif" width="32%" />
 </p>
+
+# Overview
+
+**IRIS** (**I**ntersection-aware **R**ay-based **I**mplicit Editable **S**cenes) enables fast rendering and interactive shape editing for Neural Radiance Fields. It utilizes neural anchors—represented as 3D Gaussians—to guide neural evaluations. To eliminate the computational inefficiencies of standard proxy-guided NeRFs, IRIS introduces an analytical sampling strategy that precisely identifies ray-primitive intersections, effectively bypassing empty space. Additionally, we replace costly 3D spatial searches with a continuous feature aggregation mechanism. By interpolating latent attributes directly from sorted intersections along the ray, IRIS ensures strict geometric consistency while achieving high-fidelity visuals and flexible scene manipulation.
 
 # ⚙️ Installation
 
