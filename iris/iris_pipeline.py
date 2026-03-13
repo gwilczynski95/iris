@@ -14,9 +14,8 @@ from nerfstudio.utils import profiler
 from torch.cuda.amp.grad_scaler import GradScaler
 from rich.progress import BarColumn, MofNCompleteColumn, Progress, TextColumn, TimeElapsedColumn
 
-
 from nerfstudio.pipelines.base_pipeline import VanillaPipeline, VanillaPipelineConfig
-from iris.data.datamanagers import GenieDataManager
+from iris.data.datamanagers import IrisDataManager
 
 
 @dataclass 
@@ -30,7 +29,7 @@ class IrisPipelineConfig(VanillaPipelineConfig):
 class IrisPipeline(VanillaPipeline):
 
     config: IrisPipelineConfig
-    datamanager: GenieDataManager
+    datamanager: IrisDataManager
 
     def __init__(
         self,
@@ -44,7 +43,7 @@ class IrisPipeline(VanillaPipeline):
         Pipeline.__init__(self)
         self.config = config
         
-        self.datamanager: GenieDataManager = config.datamanager.setup(
+        self.datamanager: IrisDataManager = config.datamanager.setup(
             device=device, test_mode=test_mode, world_size=world_size, local_rank=local_rank
         )
         assert self.datamanager.train_dataset is not None, "Missing input dataset"
@@ -65,8 +64,8 @@ class IrisPipeline(VanillaPipeline):
             dist.barrier(device_ids=[local_rank])
 
         # DynamicBatchPipeline initialization
-        assert isinstance(self.datamanager, GenieDataManager), (
-            "DynamicBatchPipeline only works with GenieDataManager."
+        assert isinstance(self.datamanager, IrisDataManager), (
+            "DynamicBatchPipeline only works with IrisDataManager."
         )
 
     def load_pipeline(self, loaded_state: Dict[str, Any], step: int) -> None:

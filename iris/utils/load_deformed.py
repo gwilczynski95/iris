@@ -10,7 +10,7 @@ def load_deformed_tetrahedrons(model: IrisModel, ply_path: str, ref_ply_path: st
     Load deformed tetrahedrons from a PLY file and update the model's Gaussians using deformation gradient.
     
     Args:
-        model: The GenieModel to update.
+        model: The IrisModel to update.
         ply_path: Path to the PLY file containing the deformed tetrahedron soup.
         ref_ply_path: Path to the PLY file containing the reference (undeformed) tetrahedron soup.
         scale: The scale factor used during export for the arms.
@@ -66,15 +66,20 @@ def load_deformed_tetrahedrons(model: IrisModel, ply_path: str, ref_ply_path: st
     # Get current model covariance
     encoder = model.field.mlp_base.encoder
 
-    # Perform SVD on M_def to get new rotation and scales
+    # Perform SVD on M_def and M_ref to get new rotation and scales
     U, S, Vh = torch.linalg.svd(M_def.double())
     U = U.float()
     S = S.float()
 
-    # Clamp scale outliers
-    mean_s = S.mean()
-    std_s = S.std()
-    S = torch.clamp(S, max=mean_s + 3 * std_s)
+    _, S_ref, _ = torch.linalg.svd(M_ref.double())
+    S_ref = S_ref.float()
+
+    # Clamp scale outliers: limit stretch ratio to mean + 3*std
+    stretch = S / S_ref.clamp(min=1e-6)
+    mean_stretch = stretch.mean()
+    std_stretch = stretch.std()
+    max_stretch = mean_stretch + 3 * std_stretch
+    S = torch.where(stretch > max_stretch, S_ref * max_stretch, S)
 
     # Ensure right-handed rotation
     det = torch.linalg.det(U)

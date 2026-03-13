@@ -419,57 +419,82 @@ class ExportPlyFromEdits():
 
 
 @dataclass
-class ExportPlyTetrahedronFromEdits():
+class ExportPlyTetrahedronFromEdits:
+    """
+    Bind tetrahedron soup to a reference mesh and deform it following mesh edits.
+
+    Each tetrahedron vertex is expressed in the local affine coordinate system of its
+    closest mesh face (using unnormalized edge vectors + cross-product normal as basis).
+    When the mesh deforms, the same affine coordinates are evaluated in the deformed
+    face's basis, so the tetrahedrons naturally follow rotation, translation, scaling,
+    and shearing of the bound face — similar to a Blender lattice.
+    """
+
     load_config: Path
     """Path to the configuration file."""
     scale: int = 1
     """Scale factor for the edited mesh."""
 
     def write_ply_pointcloud(self, points, filepath, verbose=False):
-        """Write points as PLY point cloud file"""
+        """Write points as PLY point cloud file."""
         pcd = o3d.geometry.PointCloud()
         pcd.points = o3d.utility.Vector3dVector(points)
         o3d.io.write_point_cloud(str(filepath), pcd)
         if verbose:
             print(f'Point cloud saved to: {filepath} with {len(points)} points')
 
-    def _build_triangle_basis(self, v1, v2, v3, eps=1e-8):
-        # Build orthonormal-ish basis from triangle
-        v2_v1 = v2 - v1
-        v3_v1 = v3 - v1
-        normal = torch.linalg.cross(v2_v1, v3_v1, dim=-1)
+    @staticmethod
+    def _build_basis(v1, v2, v3, eps=1e-8):
+        """
+        Build an affine basis from a triangle.
 
-        v2_v1 = v2_v1 / torch.clamp(
-            torch.linalg.vector_norm(v2_v1, dim=-1, keepdim=True), min=eps
-        )
-        v3_v1 = v3_v1 / torch.clamp(
-            torch.linalg.vector_norm(v3_v1, dim=-1, keepdim=True), min=eps
-        )
-        normal = normal / torch.clamp(
-            torch.linalg.vector_norm(normal, dim=-1, keepdim=True), min=eps
-        )
+        Returns B of shape (N, 3, 3) whose columns are [e1, e2, n_hat]:
+            e1 = v2 - v1          (unnormalized — carries tangent scale/shear)
+            e2 = v3 - v1          (unnormalized — carries tangent scale/shear)
+            n_hat = unit normal   (normalized — direction only)
 
-        A_T = torch.stack([normal, v2_v1, v3_v1]).permute(1, 2, 0)
-        return A_T, normal, v2_v1, v3_v1
+        Edge vectors are kept raw so that in-plane stretching/shearing of the
+        mesh face is faithfully transferred to bound tetrahedrons.  The normal
+        is normalized to unit length so that the out-of-plane (height) component
+        is transferred as an absolute distance, avoiding the quadratic blow-up
+        that would occur with the raw cross product (whose magnitude ∝ area ∝ L²).
+        """
+        e1 = v2 - v1
+        e2 = v3 - v1
+        n = torch.linalg.cross(e1, e2, dim=-1)
+        n_hat = n / torch.clamp(torch.linalg.vector_norm(n, dim=-1, keepdim=True), min=eps)
+        B = torch.stack([e1, e2, n_hat], dim=-1)  # (N, 3, 3)
+        return B
 
-    def _solve_alpha(self, A_T, delta, eps=1e-6):
-        # Add small diagonal regularization for stability
-        reg = eps * torch.eye(3, device=A_T.device, dtype=A_T.dtype).unsqueeze(0)
-        reg = reg.expand(A_T.shape[0], -1, -1)
-        A_T_reg = A_T + reg
+    @staticmethod
+    def _solve_coords(B, delta, eps=1e-6, alpha_clamp=2000.0):
+        """
+        Solve  B @ alpha = delta  for alpha (the binding coordinates).
+
+        B:     (N, 3, 3)   — basis matrices (columns = [e1, e2, n])
+        delta: (N, 3)      — offset vectors  (w_i - v1)
+
+        Returns alpha of shape (N, 3, 1).
+
+        Near-degenerate triangles produce ill-conditioned B and can yield
+        extreme alpha values that cause spikes after reconstruction.
+        We clamp the result to [-alpha_clamp, alpha_clamp] to suppress them.
+        """
+        # Small diagonal regularisation so near-degenerate triangles don't blow up
+        reg = eps * torch.eye(3, device=B.device, dtype=B.dtype).unsqueeze(0)
+        B_reg = B + reg.expand(B.shape[0], -1, -1)
         try:
-            alpha = torch.linalg.solve(A_T_reg, delta).reshape(A_T.shape[0], 3, 1)
+            alpha = torch.linalg.solve(B_reg, delta.unsqueeze(-1))  # (N, 3, 1)
         except torch._C._LinAlgError:
-            print("Warning: Using pseudoinverse due to singular matrices")
-            alpha = torch.linalg.pinv(A_T) @ delta
-            alpha = alpha.reshape(A_T.shape[0], 3, 1)
-        return alpha
+            print("Warning: falling back to pseudo-inverse for singular basis matrices")
+            alpha = torch.linalg.pinv(B) @ delta.unsqueeze(-1)
 
-    def calc_new_vertices_position(self, alpha, normal, vec_1, vec_2, vertice_1):
-        vertices = torch.bmm(
-            alpha.permute(0, 2, 1), torch.stack((normal, vec_1, vec_2), dim=1)
-        ).reshape(-1, 3) + vertice_1
-        return vertices
+        # Clamp outlier coordinates coming from degenerate faces
+        n_outliers = (alpha.abs() > alpha_clamp).any(dim=1).sum().item()
+        if n_outliers > 0:
+            print(f"Warning: clamping {n_outliers} outlier binding coordinates (|alpha| > {alpha_clamp})")
+        alpha = alpha.clamp(-alpha_clamp, alpha_clamp)
+        return alpha
 
     def main(self):
         output_dir = self.load_config.parent
@@ -482,72 +507,120 @@ class ExportPlyTetrahedronFromEdits():
         if not (output_dir / "camera_path").exists():
             os.makedirs(output_dir / "camera_path")
 
-        # Load tetrahedron soup as mesh, then group vertices into tetrahedra
+        # ------------------------------------------------------------------
+        # Load tetrahedron soup — groups of 4 vertices [center, tip1, tip2, tip3]
+        # ------------------------------------------------------------------
         tetra_soup = trimesh.load(str(tetra_soup_path), force='mesh', process=False)
-        tetra_vertices = torch.tensor(tetra_soup.vertices).cuda().float()
+        tetra_vertices = torch.tensor(tetra_soup.vertices, device='cuda', dtype=torch.float32)
 
         assert tetra_vertices.shape[0] % 4 == 0, "Tetrahedron soup vertex count not divisible by 4."
         tetra_vertices = tetra_vertices.view(-1, 4, 3)  # (N_tet, 4, 3)
+        N_tet = tetra_vertices.shape[0]
 
-        mesh = trimesh.load(str(mesh_path), force='mesh', process=False)
-        mesh_triangles = torch.tensor(mesh.triangles).cuda().float()
+        # ------------------------------------------------------------------
+        # Load first-frame (reference) mesh
+        # ------------------------------------------------------------------
+        mesh_ref = trimesh.load(str(mesh_path), force='mesh', process=False)
+        mesh_triangles_ref = torch.tensor(mesh_ref.triangles, device='cuda', dtype=torch.float32)
 
         files = sorted(glob.glob(os.path.join(mesh_path.parent, "*.ply")))
-        print(f"Found {len(files)} files in {mesh_path.parent}")
+        print(f"Found {len(files)} reference-mesh frames in {mesh_path.parent}")
 
-        tri_centroids = torch.mean(mesh_triangles, dim=1).cpu()
+        # ------------------------------------------------------------------
+        # Binding phase: assign each tetrahedron to its closest mesh face,
+        # skipping degenerate (tiny-area) faces via k-NN fallback.
+        # ------------------------------------------------------------------
+        tri_centroids = torch.mean(mesh_triangles_ref, dim=1).cpu().numpy()
+        tet_centroids = torch.mean(tetra_vertices, dim=1).cpu().numpy()
+
+        # Pre-compute face areas to detect degenerate triangles
+        e1_all = mesh_triangles_ref[:, 1, :] - mesh_triangles_ref[:, 0, :]
+        e2_all = mesh_triangles_ref[:, 2, :] - mesh_triangles_ref[:, 0, :]
+        face_areas = 0.5 * torch.linalg.vector_norm(
+            torch.linalg.cross(e1_all, e2_all, dim=-1), dim=-1
+        )
+        median_area = face_areas.median().item()
+        area_threshold = median_area * 1e-4  # faces smaller than this are degenerate
+
+        K_NEIGHBOURS = 8
         tree = KDTree(tri_centroids)
+        dists, knn_indices = tree.query(tet_centroids, k=K_NEIGHBOURS, return_distance=True)
 
-        tet_centroids = torch.mean(tetra_vertices, dim=1).cpu()
-        index_of_closest = tree.query(tet_centroids, k=1, return_distance=False)
-        index_of_closest = index_of_closest.flatten()
+        # For each tetrahedron pick the closest *non-degenerate* face
+        face_idx = np.empty(N_tet, dtype=np.int64)
+        n_fallbacks = 0
+        for i in range(N_tet):
+            picked = False
+            for j in range(K_NEIGHBOURS):
+                fid = knn_indices[i, j]
+                if face_areas[fid].item() > area_threshold:
+                    face_idx[i] = fid
+                    picked = True
+                    if j > 0:
+                        n_fallbacks += 1
+                    break
+            if not picked:
+                # All k neighbours are degenerate — use the closest anyway
+                face_idx[i] = knn_indices[i, 0]
+                n_fallbacks += 1
 
-        closest_triangle = mesh_triangles[index_of_closest]
-        v1 = closest_triangle[:, 0, :]
-        v2 = closest_triangle[:, 1, :]
-        v3 = closest_triangle[:, 2, :]
+        if n_fallbacks > 0:
+            print(f"Binding: {n_fallbacks}/{N_tet} tetrahedrons fell back to a non-closest face (degenerate skip)")
 
-        A_T, normal, v2_v1, v3_v1 = self._build_triangle_basis(v1, v2, v3)
+        # Reference triangle vertices for each tetrahedron
+        closest_tri = mesh_triangles_ref[face_idx]       # (N_tet, 3, 3)
+        v1_ref = closest_tri[:, 0, :]
+        v2_ref = closest_tri[:, 1, :]
+        v3_ref = closest_tri[:, 2, :]
 
-        w0 = tetra_vertices[:, 0, :]
-        w1 = tetra_vertices[:, 1, :]
-        w2 = tetra_vertices[:, 2, :]
-        w3 = tetra_vertices[:, 3, :]
+        # Build the *unnormalized* affine basis of each reference face
+        B_ref = self._build_basis(v1_ref, v2_ref, v3_ref)  # (N_tet, 3, 3)
 
-        alpha_w0 = self._solve_alpha(A_T, (w0 - v1).unsqueeze(-1))
-        alpha_w1 = self._solve_alpha(A_T, (w1 - v1).unsqueeze(-1))
-        alpha_w2 = self._solve_alpha(A_T, (w2 - v1).unsqueeze(-1))
-        alpha_w3 = self._solve_alpha(A_T, (w3 - v1).unsqueeze(-1))
+        # Express every tetrahedron vertex in its face's local coordinates
+        #   B_ref @ alpha_i = w_i - v1_ref   →   alpha_i = B_ref⁻¹ (w_i - v1_ref)
+        w0 = tetra_vertices[:, 0, :]  # center
+        w1 = tetra_vertices[:, 1, :]  # arm tip 1
+        w2 = tetra_vertices[:, 2, :]  # arm tip 2
+        w3 = tetra_vertices[:, 3, :]  # arm tip 3
 
+        alpha_w0 = self._solve_coords(B_ref, w0 - v1_ref)
+        alpha_w1 = self._solve_coords(B_ref, w1 - v1_ref)
+        alpha_w2 = self._solve_coords(B_ref, w2 - v1_ref)
+        alpha_w3 = self._solve_coords(B_ref, w3 - v1_ref)
+
+        print(f"Binding complete: {N_tet} tetrahedrons → {mesh_triangles_ref.shape[0]} mesh faces")
+
+        # ------------------------------------------------------------------
+        # Deformation phase: for every frame rebuild deformed tetrahedrons
+        # ------------------------------------------------------------------
         for edited_mesh_path in tqdm(files):
             mesh_edited = trimesh.load(edited_mesh_path, force='mesh', process=False)
-            mesh_edited_triangles = torch.tensor(mesh_edited.triangles).cuda().float()
+            mesh_triangles_def = torch.tensor(mesh_edited.triangles, device='cuda', dtype=torch.float32)
 
-            referenced_triangle = mesh_edited_triangles[index_of_closest]
-            v1_ref = referenced_triangle[:, 0, :]
-            v2_ref = referenced_triangle[:, 1, :]
-            v3_ref = referenced_triangle[:, 2, :]
+            # Look up the *same* face from the deformed mesh
+            def_tri = mesh_triangles_def[face_idx]
+            v1_def = def_tri[:, 0, :]
+            v2_def = def_tri[:, 1, :]
+            v3_def = def_tri[:, 2, :]
 
-            A_T_ref, normal_ref, v2_ref_v1, v3_ref_v1 = self._build_triangle_basis(
-                v1_ref, v2_ref, v3_ref
-            )
+            # Build deformed basis (unnormalized — carries full deformation)
+            B_def = self._build_basis(v1_def, v2_def, v3_def)  # (N_tet, 3, 3)
 
-            flip = (normal_ref * normal).sum(dim=-1, keepdim=True) < 0
-            normal_ref = torch.where(flip, -normal_ref, normal_ref)
-            v2_ref_v1 = torch.where(flip, -v2_ref_v1, v2_ref_v1)
-            v3_ref_v1 = torch.where(flip, -v3_ref_v1, v3_ref_v1)
+            # Reconstruct:  w_i' = B_def @ alpha_i + v1_def
+            w0_def = (B_def @ alpha_w0).squeeze(-1) + v1_def
+            w1_def = (B_def @ alpha_w1).squeeze(-1) + v1_def
+            w2_def = (B_def @ alpha_w2).squeeze(-1) + v1_def
+            w3_def = (B_def @ alpha_w3).squeeze(-1) + v1_def
 
-            w0_edited = self.calc_new_vertices_position(alpha_w0, normal_ref, v2_ref_v1, v3_ref_v1, v1_ref)
-            w1_edited = self.calc_new_vertices_position(alpha_w1, normal_ref, v2_ref_v1, v3_ref_v1, v1_ref)
-            w2_edited = self.calc_new_vertices_position(alpha_w2, normal_ref, v2_ref_v1, v3_ref_v1, v1_ref)
-            w3_edited = self.calc_new_vertices_position(alpha_w3, normal_ref, v2_ref_v1, v3_ref_v1, v1_ref)
-
-            vertices = torch.stack([w0_edited, w1_edited, w2_edited, w3_edited], dim=1).reshape(-1, 3)
+            # Stack back into tetrahedron interleaved format [v0,v1,v2,v3, ...]
+            vertices = torch.stack([w0_def, w1_def, w2_def, w3_def], dim=1).reshape(-1, 3)
 
             filename = str(edited_mesh_path).replace("reference_meshes", "camera_path")
-            self.write_ply_pointcloud(points=(vertices * self.scale).detach().cpu().numpy(),
-                                      filepath=filename,
-                                      verbose=True)
+            self.write_ply_pointcloud(
+                points=(vertices * self.scale).detach().cpu().numpy(),
+                filepath=filename,
+                verbose=True,
+            )
 
 
 Commands = tyro.conf.FlagConversionOff[

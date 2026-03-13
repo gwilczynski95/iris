@@ -13,8 +13,8 @@ from nerfstudio.engine.optimizers import AdamOptimizerConfig
 from nerfstudio.plugins.types import MethodSpecification
 from nerfstudio.data.pixel_samplers import PixelSamplerConfig
 
-from iris.data.dataparsers import GenieBlenderDataParserConfig, GenieNerfstudioDataParserConfig
-from iris.data.datamanagers import GenieDataManagerConfig
+from iris.data.dataparsers import IrisBlenderDataParserConfig, IrisNerfstudioDataParserConfig
+from iris.data.datamanagers import IrisDataManagerConfig
 from iris.iris_trainer import IrisTrainerConfig
 from iris.iris_model import IrisModelConfig
 from iris.sampler.sampler_algorithms import GaussianIntersectionSamplerConfig
@@ -53,8 +53,8 @@ iris = MethodSpecification(
         max_num_iterations=MAX_NUM_ITERATIONS,
         freeze_means_step=31000,
         pipeline=IrisPipelineConfig(
-            datamanager=GenieDataManagerConfig(
-                dataparser=GenieBlenderDataParserConfig(
+            datamanager=IrisDataManagerConfig(
+                dataparser=IrisBlenderDataParserConfig(
                     gauss_transform_matrix=nerf_synth_transform_matrix,
                     gauss_scale_factor=nerf_synth_scale_factor,
                     alpha_color=None
@@ -128,8 +128,8 @@ iris_real = MethodSpecification(
         max_num_iterations=MAX_NUM_ITERATIONS,
         freeze_means_step=31000,
         pipeline=IrisPipelineConfig(
-            datamanager=GenieDataManagerConfig(
-                dataparser=GenieNerfstudioDataParserConfig(
+            datamanager=IrisDataManagerConfig(
+                dataparser=IrisNerfstudioDataParserConfig(
                     gauss_transform_matrix=big_scenes_transform_matrix_1,
                     gauss_scale_factor=big_scenes_scale_factor,
                     eval_mode="interval",

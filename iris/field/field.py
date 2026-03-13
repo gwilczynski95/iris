@@ -8,17 +8,9 @@ import torch
 from torch import Tensor, nn
 
 from nerfstudio.cameras.rays import RaySamples
-from nerfstudio.data.scene_box import SceneBox
 from nerfstudio.field_components.activations import trunc_exp
 from nerfstudio.field_components.embedding import Embedding
-from nerfstudio.field_components.field_heads import (
-    FieldHeadNames,
-    PredNormalsFieldHead,
-    SemanticFieldHead,
-    TransientDensityFieldHead,
-    TransientRGBFieldHead,
-    UncertaintyFieldHead,
-)
+from nerfstudio.field_components.field_heads import FieldHeadNames
 from nerfstudio.field_components.spatial_distortions import SpatialDistortion
 from nerfstudio.fields.base_field import Field, get_normalized_directions
 from nerfstudio.field_components.encodings import SHEncoding
@@ -27,7 +19,7 @@ from nerfstudio.utils import profiler
 from iris.field.mlp import MLP, FastMLPWithHashEncoding
 
 
-class GenieFastField(Field):
+class IrisFastField(Field):
     
     aabb: Tensor
 
@@ -164,12 +156,7 @@ class GenieFastField(Field):
             raise AttributeError("Camera indices are not provided.")
         camera_indices = ray_samples.camera_indices.squeeze()
         
-        if direction_transform is not None:
-            directions = ray_samples.frustums.directions
-            rotated_dirs = torch.einsum("...ij,...j->...i", direction_transform.squeeze(), directions)
-            directions = rotated_dirs
-        else:
-            directions = ray_samples.frustums.directions
+        directions = ray_samples.frustums.directions
         
         directions = get_normalized_directions(directions)
         directions_flat = directions.reshape(-1, 3)
@@ -195,16 +182,6 @@ class GenieFastField(Field):
                     )
         else:
             embedded_appearance = None
-
-        # # predicted normals
-        # if self.use_pred_normals:
-        #     positions = ray_samples.frustums.get_positions()
-
-        #     positions_flat = self.position_encoding(positions.view(-1, 3))
-        #     pred_normals_inp = torch.cat([positions_flat, density_embedding.view(-1, self.geo_feat_dim)], dim=-1)
-
-        #     x = self.mlp_pred_normals(pred_normals_inp).view(*outputs_shape, -1).to(directions)
-        #     outputs[FieldHeadNames.PRED_NORMALS] = self.field_head_pred_normals(x)
 
         h = torch.cat(
             [
@@ -234,7 +211,5 @@ class GenieFastField(Field):
         effective_density = density * alphas
         final_alpha = 1. - torch.exp(-effective_density)
         field_outputs["alpha"] = final_alpha
-        if torch.isnan(final_alpha).any() or torch.isnan(density).any() or torch.isnan(density_embedding).any() or torch.isnan(alphas).any():
-            stop = 1
 
         return field_outputs

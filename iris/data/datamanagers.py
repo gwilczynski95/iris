@@ -7,16 +7,16 @@ from nerfstudio.data.datamanagers.base_datamanager import VanillaDataManager, Va
 from nerfstudio.data.utils.dataloaders import RandIndicesEvalDataloader
 
 @dataclass
-class GenieDataManagerConfig(VanillaDataManagerConfig):
-    """Configuration for the GenieDataManager."""
-    _target: Type = field(default_factory=lambda: GenieDataManager)
+class IrisDataManagerConfig(VanillaDataManagerConfig):
+    """Configuration for the IrisDataManager."""
+    _target: Type = field(default_factory=lambda: IrisDataManager)
     """Target class to instantiate."""
 
-class GenieDataManager(VanillaDataManager):
-    config: GenieDataManagerConfig
+class IrisDataManager(VanillaDataManager):
+    config: IrisDataManagerConfig
     def __init__(
         self,
-        config: GenieDataManagerConfig,
+        config: IrisDataManagerConfig,
         device: Union[torch.device, str] = "cpu",
         test_mode: Literal["test", "val", "inference"] = "val",
         world_size: int = 1,

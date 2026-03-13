@@ -5,7 +5,7 @@ Implementation of Iris.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Literal, Optional, Tuple, Type, Union, Callable, Any
+from typing import Dict, List, Literal, Optional, Tuple, Type, Union
 
 import nerfacc
 import torch
@@ -23,9 +23,9 @@ from nerfstudio.model_components.renderers import AccumulationRenderer, DepthRen
 from nerfstudio.models.base_model import Model, ModelConfig
 from nerfstudio.utils import colormaps, profiler
 
-from iris.field.field import GenieFastField
+from iris.field.field import IrisFastField
 from iris.sampler.sampler_algorithms import GaussianIntersectionSampler, GaussianIntersectionSamplerConfig
-from iris.utils.viewer_utils import ViewerGaussianSplats, ViewerPointCloud, ViewerAABB
+
 
 @dataclass
 class IrisModelConfig(ModelConfig):
@@ -95,7 +95,7 @@ class IrisModel(Model):
     """
 
     config: IrisModelConfig
-    field: GenieFastField
+    field: IrisFastField
 
     def __init__(self, config: IrisModelConfig, **kwargs) -> None:
         super().__init__(config=config, **kwargs)
@@ -113,7 +113,7 @@ class IrisModel(Model):
         seed_points = self.kwargs.get("seed_points", None)
             
         # Initilize field
-        self.field = GenieFastField(
+        self.field = IrisFastField(
             aabb=self.scene_box.aabb,
             appearance_embedding_dim=self.config.appearance_embedding_dim if self.config.use_appearance_embedding else 0,
             num_images=self.num_train_data,
@@ -155,26 +155,6 @@ class IrisModel(Model):
         self.psnr = PeakSignalNoiseRatio(data_range=1.0)
         self.ssim = structural_similarity_index_measure
         self.lpips = LearnedPerceptualImagePatchSimilarity(normalize=True)
-
-        # Point Cloud Viewer
-        # self.viewer_point_cloud_handle = ViewerPointCloud(
-        #     name="means", 
-        #     aabb=self.scene_box, 
-        #     points=self.field.mlp_base.encoder.gauss_params["means"].detach().cpu().numpy(),
-        #     confidence=self.field.mlp_base.encoder.confidence.detach().cpu().numpy(),
-        # )
-        # self.viewer_gaussian_splats_handle = ViewerGaussianSplats(
-        #     name="gausses", 
-        #     aabb=self.scene_box, 
-        #     means=self.field.mlp_base.encoder.gauss_params["means"].detach().cpu().numpy(),
-        #     covariances=torch.exp(self.field.mlp_base.encoder.gauss_params["log_covs"]).detach().cpu().numpy(),
-        #     quats=self.field.mlp_base.encoder.gauss_params["quats"].detach().cpu().numpy(),
-        #     confidence=self.field.mlp_base.encoder.confidence.detach().cpu().numpy()
-        # )
-        self.viewer_aabb_handle = ViewerAABB(
-            name="aabb",
-            aabb=self.scene_box,
-        )
 
         self.grad_scaler = GradScaler(2**10)
     
