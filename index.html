@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-VXWTRSN44Y"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-VXWTRSN44Y');
+    </script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+    <title>IRIS</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,500,600" rel="stylesheet" type="text/css">
+    <link rel="stylesheet" href="assets/css/Highlight-Clean.css">
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="assets/css/bulma-carousel.min.css">
+    <link rel="stylesheet" href="assets/css/bulma-slider.min.css">
+
+    <link rel="apple-touch-icon" sizes="180x180" href="assets/logo.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="assets/logo.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="assets/logo.png">
+    <link rel="manifest" href="site.webmanifest">
+
+    <meta property="og:site_name" content="IRIS: Intersection-aware Ray-based Implicit Editable Scenes" />
+    <meta property="og:type" content="video.other" />
+    <meta property="og:title" content="IRIS: Intersection-aware Ray-based Implicit Editable Scenes" />
+    <meta property="og:description" content="IRIS: Intersection-aware Ray-based Implicit Editable Scenes, 2026." />
+
+    <script src="assets/js/video_comparison.js"></script>
+    <script type="module" src="https://unpkg.com/@google/model-viewer@2.0.1/dist/model-viewer.min.js"></script>
+    <script src="assets/js/bulma-carousel.min.js"></script>
+    <script src="assets/js/bulma-slider.min.js"></script>
+
+    <style>
+        /* 1. Fluid aspect-ratio “before/after” container */
+        .small-bal-container {
+            width: 100%;
+            max-width: 560px;
+            aspect-ratio: 560 / 322;
+            position: relative;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+
+        .small-bal-container img,
+        .small-bal-container video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        /* Square variant just for video comparisons */
+        .square-bal-container {
+            aspect-ratio: 1 / 1;
+        }
+
+        /* 2. Custom carousel arrow tweaks */
+        .carousel-control-prev-icon,
+        .carousel-control-next-icon {
+            background-color: black;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 3px solid white;
+        }
+        .carousel-control-prev-icon::after,
+        .carousel-control-next-icon::after {
+            content: '';
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border: solid white;
+        }
+        .carousel-control-prev-icon::after {
+            border-width: 0 4px 4px 0;
+            transform: rotate(135deg);
+            margin-left: -3px;
+        }
+        .carousel-control-next-icon::after {
+            border-width: 0 4px 4px 0;
+            transform: rotate(-45deg);
+            margin-right: -3px;
+        }
+
+        /* 3. Minor tweaks on very small screens */
+        @media (max-width: 575.98px) {
+            body {
+                font-size: 0.9rem;
+            }
+            h1 {
+                font-size: 1.75rem;
+            }
+            .author-container h6 {
+                font-size: 0.85rem;
+            }
+            .container,
+            .container-fluid {
+                padding-left: 0.5rem;
+                padding-right: 0.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="highlight-clean pb-3">
+        <div class="container-fluid mb-3">
+            <!-- <h2 class="text-center" style="font-weight: bold; color: #007bff; margin-bottom: 5px;">[3DV 2026]</h2> -->
+            <h1 class="text-center mb-2">IRIS: Intersection-aware Ray-based Implicit Editable Scenes</h1>
+        </div>
+
+        <!-- Centered author section -->
+        <div class="container author-container mt-4">
+            <div class="row justify-content-center">
+                <div class="col-auto mb-2 text-center">
+                    <h6>
+                        <a href="https://scholar.google.com/citations?user=cMUzSyUAAAAJ&hl=en">
+                            Grzegorz Wilczyński<sup>1,3</sup>
+                        </a>
+                    </h6>
+                </div>
+                <div class="col-auto mb-2 text-center">
+                    <h6>
+                        <a href="https://github.com/MikolajZielinski">
+                            Mikołaj Zieliński<sup>2</sup>
+                        </a>
+                    </h6>
+                </div>
+                <div class="col-auto mb-2 text-center">
+                    <h6>
+                        <a href="https://scholar.google.com/citations?user=ef2YKtsAAAAJ&hl=en">
+                            Krzysztof Byrski<sup>1</sup>
+                        </a>
+                    </h6>
+                </div>
+                <div class="col-auto mb-2 text-center">
+                    <h6>
+                        <a href="https://scholar.google.com/citations?user=eatkjjEAAAAJ&hl=en">
+                            Joanna Waczyńska<sup>1,3</sup>
+                        </a>
+                    </h6>
+                </div>
+                <div class="col-auto mb-2 text-center">
+                    <h6>
+                        <a href="https://scholar.google.com/citations?user=3XvUbbMAAAAJ&hl=en">
+                            Dominik Belter<sup>2</sup>
+                        </a>
+                    </h6>
+                </div>
+                <div class="col-auto mb-2 text-center">
+                    <h6>
+                        <a href="https://scholar.google.com/citations?user=0kp0MbgAAAAJ&hl=en">
+                            Przemysław Spurek<sup>1,3</sup>
+                        </a>
+                    </h6>
+                </div>
+            </div>
+
+            <div class="row justify-content-center mt-2">
+                <div class="col-auto text-center">
+                    <h6><a href="https://en.uj.edu.pl/en"><sup>1</sup>Jagiellonian University</a></h6>
+                </div>
+                <div class="col-auto text-center">
+                    <h6><a href="https://put.poznan.pl/en"><sup>2</sup>Poznań University of Technology</a></h6>
+                </div>
+                <div class="col-auto text-center">
+                    <h6><a href="https://www.ideas.edu.pl/en/"><sup>3</sup>IDEAS Research Institute</a></h6>
+                </div>
+            </div>
+        </div>
+        <!-- End author section -->
+    </div>
+
+    <div class="container align-items-center">
+        <div class="row text-center justify-content-center">
+            <div class="col-6 col-sm-3 mb-3">
+                <span class="link-block w-inline-block" style="cursor: default; pointer-events: none; display: inline-block;">
+                    <img src="assets/media/arxiv_paper.png" alt="paper" class="img-fluid" style="height:60px; opacity:0.5;" />
+                </span>
+                <br>
+                <div class="text-block-2"><strong class="bold-text-nerf_v2">Arxiv</strong></div>
+            </div>
+            <div class="col-6 col-sm-3 mb-3">
+                <a href="https://github.com/gwilczynski95/iris" class="link-block w-inline-block" target="_blank" style="display: inline-block;">
+                    <img src="assets/media/github.png" alt="github" class="img-fluid" style="height:60px;" />
+                </a>
+                <br>
+                <div class="text-block-2"><strong class="bold-text-nerf_v2">Code</strong></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container my-4">
+
+        <div class="row justify-content-center mb-4">
+            <div class="col-12 col-md-8">
+                <div class="embed-responsive embed-responsive-16by9">
+                    <iframe class="embed-responsive-item"
+                            src="https://www.youtube.com/embed/hs0bfLtd_5k"
+                            title="IRIS Method Video"
+                            frameborder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowfullscreen>
+                    </iframe>
+                </div>
+                <p class="text-center mt-2 mb-0"><em>Method video</em></p>
+            </div>
+        </div>
+
+        <!-- <hr class="divider" /> -->
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <h2 class="font-weight-bold">Abstract</h2>
+                    <p class="text-justify">
+                        Neural Radiance Fields achieve high-fidelity scene representation but suffer from costly training and rendering, while 3D Gaussian splatting offers real-time performance with strong empirical results. Recently, solutions that harness the best of both worlds by using Gaussians as proxies to guide neural field evaluations, still suffer from significant computational inefficiencies. They typically rely on stochastic volumetric sampling to aggregate features, which severely limits rendering performance.
+                        To address this issue, a novel framework named <strong>IRIS</strong> (<strong>I</strong>ntersection-aware <strong>R</strong>ay-based <strong>I</strong>mplicit Editable <strong>S</strong>cenes) is introduced as a method designed for efficient and interactive scene editing.
+                        To overcome the limitations of standard ray marching, an analytical sampling strategy is employed that precisely identifies interaction points between rays and scene primitives, effectively eliminating empty space processing. Furthermore, to address the computational bottleneck of spatial neighbor lookups, a continuous feature aggregation mechanism is introduced that operates directly along the ray. By interpolating latent attributes from sorted intersections, costly 3D searches are bypassed, ensuring geometric consistency, enabling high-fidelity, real-time rendering, and flexible shape editing.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+
+        <div class="row">
+            <div class="col-12 text-center mb-2">
+                <h5 class="mb-0">Large-scenes animations</h5>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12 col-md-6 mb-4 text-center">
+                <div class="embed-responsive embed-responsive-16by9">
+                    <video class="embed-responsive-item" autoplay muted loop playsinline>
+                        <source src="assets/animations/iris_counter_28.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 mb-4 text-center">
+                <div class="embed-responsive embed-responsive-16by9">
+                    <video class="embed-responsive-item" autoplay muted loop playsinline>
+                        <source src="assets/animations/iris_bicycle.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12 text-center mb-2">
+                <h5 class="mb-0">Synthetic scenes manual manipulation and physics simulation</h5>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-12 col-md-6 mb-4 text-center">
+                <div class="embed-responsive embed-responsive-16by9">
+                    <video class="embed-responsive-item" autoplay muted loop playsinline>
+                        <source src="assets/animations/iris_ficus_wind.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 mb-4 text-center">
+                <div class="embed-responsive embed-responsive-16by9">
+                    <video class="embed-responsive-item" autoplay muted loop playsinline>
+                        <source src="assets/animations/iris_lego-soft.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+            </div>
+        </div>
+
+
+
+    <hr class="divider" />
+    <div class="container mb-4">
+        <div class="row">
+            <div class="col-12">
+                <h2 class="font-weight-bold">Methodology</h2>
+                <div class="text-center mb-4">
+                    <img src="assets/iris_method.png" class="img-fluid" alt="IRIS method" />
+                </div>
+                <p class="text-justify">
+                    Our hybrid rendering pipeline, <strong>IRIS</strong>, parameterizes the scene as a set of unstructured <strong>Neural Anchors</strong>. These explicit 3D Gaussian primitives act as spatial carriers for learnable high-dimensional latent features, effectively binding implicit neural representations to movable geometry. The scene is formally defined as:
+                </p>
+                <p class="text-center">
+                    \( \mathcal{P} = \{(\mathcal{N}(\boldsymbol{\mu}_i, \boldsymbol{\Sigma}_i), \omega_i, \boldsymbol{f}_i)\}_{i=1}^N \)
+                </p>
+                <p class="text-justify">
+                    To overcome the computational inefficiency of standard stochastic volumetric sampling, we introduce the <strong>Ray Intersection Selector (RIS)</strong>. Instead of probabilistically querying empty space, RIS employs an analytical ray-intersection strategy to determine precise interaction points between camera rays and scene primitives. This ensures that every evaluation contributes directly to the surface reconstruction.
+                </p>
+                <p class="text-justify">
+                    To transition from discrete primitives to a continuous neural field, we bypass computationally heavy 3D K-Nearest Neighbors (KNN) lookups by introducing a <strong>Ray-Coherent Aggregation (RCA)</strong> mechanism. RCA acts as a vectorized, 1D approximated spatial search directly along the ray using a sliding window \( \mathcal{W}_k \).
+                </p>
+                <p class="text-justify">
+                    For every valid neighbor in the window, aggregation weights \( w_{kj} \) are obtained via a Softmax operation based on the Mahalanobis distance \( l_{kj} \). A locally smooth feature vector \( \hat{\boldsymbol{f}}(\boldsymbol{x}_k) \) and volumetric opacity \( \hat{\alpha}(\boldsymbol{x}_k) \) are synthesized through a weighted summation:
+                </p>
+                <p class="text-center">
+                    \( \hat{\boldsymbol{f}}(\boldsymbol{x}_k) = \sum_{j \in \mathcal{W}_k} w_{kj}\boldsymbol{f}_j, \quad \hat{\alpha}(\boldsymbol{x}_k) = \sum_{j \in \mathcal{W}_k} w_{kj}\alpha_{kj}^{raw} \)
+                </p>
+                <p class="text-justify">
+                    Once the locally consistent features are aggregated via RCA, a shallow MLP \( \mathcal{F}_\Theta \) is employed to decode the implicit scene attributes – view-dependent color \( \boldsymbol{c}_k \) and material density \( \sigma_{mlp} \):
+                </p>
+                <p class="text-center">
+                    \( (\sigma_{mlp}, \boldsymbol{c}_k) = \mathcal{F}_\Theta\Bigl(\hat{\boldsymbol{f}}(\boldsymbol{x}_k), \gamma(\boldsymbol{d})\Bigr) \)
+                </p>
+                <p class="text-justify">
+                    To prevent artifacts typical of unbounded fields, the neural density is spatially constrained by the explicit Gaussian structure. The final pixel color is accumulated using point-based volumetric rendering:
+                </p>
+                <p class="text-center">
+                    \( \boldsymbol{C}(\boldsymbol{r}) = \sum_{k=1}^K T_k \alpha_k \boldsymbol{c}_k \)
+                </p>
+                <p class="text-justify">
+                    By explicitly modelling the interaction between rays and neural-encoded Gaussians, our framework offers three distinct advantages:
+                </p>
+                <ul>
+                    <li><strong>Elimination of empty space processing</strong> through precise analytical intersections (RIS).</li>
+                    <li><strong>Maximized rendering throughput</strong> by aggregating local features directly along the ray (RCA), avoiding costly 3D searches.</li>
+                    <li><strong>Topology-agnostic editing and physics simulation</strong>, maintaining rendering integrity even when objects traverse <strong>beyond</strong> the initial training volume bounds</strong>.</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <hr class="divider" />
+    <div class="container mb-4">
+        <h2 class="font-weight-bold">More Visual Results</h2>
+        <div class="row">
+            <div class="col-12 col-md-6 mb-4">
+                <div id="example12" class="small-bal-container square-bal-container">
+                    <div class="bal-wrapper">
+                        <div class="bal-after">
+                            <video src="assets/animations/iris_materials.mp4" autoplay loop muted playsinline class="img-fluid"></video>
+                            <div class="bal-afterPosition afterLabel">IRIS (Ours)</div>
+                        </div>
+                        <div class="bal-before">
+                            <div class="bal-before-inset">
+                                <video src="assets/animations/eks_materials.mp4" autoplay loop muted playsinline class="img-fluid"></video>
+                                <div class="bal-beforePosition beforeLabel">EKS</div>
+                            </div>
+                        </div>
+                        <div class="bal-handle">
+                            <span class="handle-left-arrow"></span>
+                            <span class="handle-right-arrow"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 mb-4">
+                <div id="example11" class="small-bal-container square-bal-container">
+                    <div class="bal-wrapper">
+                        <div class="bal-after">
+                            <video src="assets/animations/iris_hotdog.mp4" autoplay loop muted playsinline class="img-fluid"></video>
+                            <div class="bal-afterPosition afterLabel">IRIS (Ours)</div>
+                        </div>
+                        <div class="bal-before">
+                            <div class="bal-before-inset">
+                                <video src="assets/animations/eks_hotdog.mp4" autoplay loop muted playsinline class="img-fluid"></video>
+                                <div class="bal-beforePosition beforeLabel">EKS</div>
+                            </div>
+                        </div>
+                        <div class="bal-handle">
+                            <span class="handle-left-arrow"></span>
+                            <span class="handle-right-arrow"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <p class="text-justify">
+            IRIS, compared to other editable NeRF method - EKS, produces results without ghosting artifacts, maintaining superior fidelity and clean geometry. Moreover, while other methods clip objects exiting the training volume, IRIS maintains full rendering integridy by dynamically sampling explicit geometry independent of static global bounds.
+        </p>
+    </div>
+
+    <div class="row">
+        <div class="col-12 text-center mb-2">
+            <h5 class="mb-0">Radiance Meshes vs IRIS</h5>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Example 13 -->
+        <div class="col-12 col-md-6 mb-4">
+            <div id="example13" class="small-bal-container">
+                <div class="bal-wrapper">
+                    <div class="bal-after">
+                        <img src="assets/comparisons/iris/iris_bonsai_iris-vs-rm.jpg" alt="Example 2 After">
+                        <div class="bal-afterPosition afterLabel">IRIS (Ours)</div>
+                    </div>
+                    <div class="bal-before">
+                        <div class="bal-before-inset">
+                            <img src="assets/comparisons/iris/bonsai_rm.jpg" alt="Example 2 Before">
+                            <div class="bal-beforePosition beforeLabel">Radiance Meshes</div>
+                        </div>
+                    </div>
+                    <div class="bal-handle">
+                        <span class="handle-left-arrow"></span>
+                        <span class="handle-right-arrow"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Example 14 -->
+        <div class="col-12 col-md-6 mb-4">
+            <div id="example14" class="small-bal-container">
+                <div class="bal-wrapper">
+                    <div class="bal-after">
+                        <img src="assets/comparisons/iris/room_iris.jpg" alt="Example 6 After">
+                        <div class="bal-afterPosition afterLabel">IRIS (Ours)</div>
+                    </div>
+                    <div class="bal-before">
+                        <div class="bal-before-inset">
+                            <img src="assets/comparisons/iris/room_rm.jpg" alt="Example 6 Before">
+                            <div class="bal-beforePosition beforeLabel">Radiance Meshes</div>
+                        </div>
+                    </div>
+                    <div class="bal-handle">
+                        <span class="handle-left-arrow"></span>
+                        <span class="handle-right-arrow"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12 text-center mb-2">
+            <h5 class="mb-0">Ground truth vs IRIS</h5>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Example 2 -->
+        <div class="col-12 col-md-6 mb-4">
+            <div id="example2" class="small-bal-container">
+                <div class="bal-wrapper">
+                    <div class="bal-after">
+                        <img src="assets/comparisons/iris/playroom_iris.jpg" alt="Example 2 After">
+                        <div class="bal-afterPosition afterLabel">IRIS (Ours)</div>
+                    </div>
+                    <div class="bal-before">
+                        <div class="bal-before-inset">
+                            <img src="assets/comparisons/iris/playroom_gt.jpg" alt="Example 2 Before">
+                            <div class="bal-beforePosition beforeLabel">Ground truth</div>
+                        </div>
+                    </div>
+                    <div class="bal-handle">
+                        <span class="handle-left-arrow"></span>
+                        <span class="handle-right-arrow"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Example 3 -->
+        <div class="col-12 col-md-6 mb-4">
+            <div id="example3" class="small-bal-container">
+                <div class="bal-wrapper">
+                    <div class="bal-after">
+                        <img src="assets/comparisons/iris/bonsai_iris.jpg" alt="Example 6 After">
+                        <div class="bal-afterPosition afterLabel">IRIS (Ours)</div>
+                    </div>
+                    <div class="bal-before">
+                        <div class="bal-before-inset">
+                            <img src="assets/comparisons/iris/bonsai_gt.jpg" alt="Example 6 Before">
+                            <div class="bal-beforePosition beforeLabel">12345Ground truth</div>
+                        </div>
+                    </div>
+                    <div class="bal-handle">
+                        <span class="handle-left-arrow"></span>
+                        <span class="handle-right-arrow"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <p class="text-center pt-3 mx-auto" style="max-width: 1100px;">
+        IRIS achieves high-quality novel view synthesis for static scenes on par with state-of-the-art static reconstruction methods.
+    </p>
+
+    
+</div>
+
+    <div class="container mb-4">
+        <hr class="divider" />
+        <h2 class="font-weight-bold">Citation</h2>
+        <code>
+            @article{Held2025Triangle,<br>
+            &nbsp;&nbsp;title = {Triangle Splatting for Real-Time Radiance Field Rendering},<br>
+            &nbsp;&nbsp;author = {Held, Jan and Vandeghen, Renaud and Deliege, Adrien and Hamdi, Abdullah and Cioppa, Anthony and Giancola, Silvio and Vedaldi, Andrea and Ghanem, Bernard and Tagliasacchi, Andrea and Van Droogenbroeck, Marc},<br>
+            &nbsp;&nbsp;journal = {arXiv},<br>
+            &nbsp;&nbsp;year = {2025},<br>
+            }
+        </code>
+    </div>
+
+    <hr class="divider" />
+    <footer class="footer">
+        <div class="container">
+            <div class="content has-text-centered">
+                <a class="icon-link" href="assets/videos/nerfies_paper.pdf">
+                    <i class="fas fa-file-pdf"></i>
+                </a>
+                <a class="icon-link" href="https://github.com/keunhong" class="external-link" disabled>
+                    <i class="fab fa-github"></i>
+                </a>
+            </div>
+            <div class="columns is-centered">
+                <div class="column is-8">
+                    <div class="content">
+                        <p>
+                            This website is licensed under a <a rel="license"
+                                href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons
+                                Attribution-ShareAlike 4.0 International License</a>.
+                        </p>
+                        <p>
+                            We borrow the <a href="https://dreamfusion3d.github.io/">source code</a> for our
+                            website. We sincerely appreciate DreamFusion authors for their awesome
+                            templates.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    <script src="https://polyfill.io/v3/polyfill.js?features=IntersectionObserver"></script>
+    <script src="assets/js/yall.js"></script>
+    <script>
+        yall({ observeChanges: true });
+    </script>
+    <script src="assets/js/scripts.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://uploads-ssl.webflow.com/51e0d73d83d06baa7a00000f/js/webflow.fd002feec.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            var video = document.getElementById('speed025');
+            if (video) {
+                video.playbackRate = 0.1;
+            }
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Ensure paired comparison videos start in sync
+            const syncGroups = [
+                [
+                    document.querySelector('#example12 .bal-after video'),
+                    document.querySelector('#example12 .bal-before video')
+                ],
+                [
+                    document.querySelector('#example11 .bal-after video'),
+                    document.querySelector('#example11 .bal-before video')
+                ]
+            ];
+
+            syncGroups.forEach(group => {
+                const videos = group.filter(Boolean);
+                if (videos.length !== group.length) return;
+
+                let readyCount = 0;
+
+                const tryStartGroup = () => {
+                    if (readyCount < videos.length) return;
+                    videos.forEach(v => {
+                        v.currentTime = 0;
+                        const playPromise = v.play();
+                        if (playPromise && typeof playPromise.then === 'function') {
+                            playPromise.catch(() => { /* ignore autoplay errors */ });
+                        }
+                    });
+                };
+
+                videos.forEach(v => {
+                    v.muted = true;
+                    v.currentTime = 0;
+
+                    const onReady = () => {
+                        readyCount += 1;
+                        tryStartGroup();
+                    };
+
+                    if (v.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+                        onReady();
+                    } else {
+                        v.addEventListener('canplaythrough', onReady, { once: true });
+                    }
+                });
+            });
+        });
+    </script>
+
+    <script>
+        // Initialize before/after sliders only for existing IDs
+        new BeforeAfter({ id: '#example2' });
+        new BeforeAfter({ id: '#example3' });
+        new BeforeAfter({ id: '#example11' });
+        new BeforeAfter({ id: '#example12' });
+        new BeforeAfter({ id: '#example13' });
+        new BeforeAfter({ id: '#example14' });
+    </script>
+</body>
+
+</html>
