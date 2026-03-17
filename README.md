@@ -16,8 +16,8 @@
 </p>
 
 <p align="center">
-  <a href="https://arxiv.org/abs/2508.02831"><img src="https://img.shields.io/badge/arXiv-2508.02831-b31b1b.svg" alt="arXiv"></a>
-  <a href="https://mikolajzielinski.github.io/iris.github.io/"><img src="https://img.shields.io/badge/🌐-Project%20Page-blue" alt="Project Page"></a>
+  <a href="https://arxiv.org/abs/2603.15368"><img src="https://img.shields.io/badge/arXiv-2508.02831-b31b1b.svg" alt="arXiv"></a>
+  <a href="https://gwilczynski95.github.io/iris/"><img src="https://img.shields.io/badge/🌐-Project%20Page-blue" alt="Project Page"></a>
 </p>
 
 
