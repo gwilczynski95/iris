@@ -143,7 +143,7 @@ iris-render camera-path \
 If you found this work usefull, please consider citing:
 
 ``` bibtex
-    @misc{wilczynski2026iris,
+    @inproceedings{wilczynski2026iris,
         title={IRIS: Intersection-aware Ray-based Implicit Editable Scenes}, 
         author={Grzegorz Wilczyński and Mikołaj Zieliński and Krzysztof Byrski and Joanna Waczyńska and Dominik Belter and Przemysław Spurek},
         year={2026},
