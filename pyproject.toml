@@ -20,6 +20,11 @@ include = ["iris*"]
 iris = 'iris.iris_config:iris'
 iris-real = 'iris.iris_config:iris_real'
 
+# register data parser
+[project.entry-points.'nerfstudio.dataparser_configs']
+iris-blender-data = "iris.data.dataparsers:IrisBlenderDataParser"
+iris-nerfstudio-data = "iris.data.dataparsers:IrisNerfstudioDataParser"
+
 [project.scripts]
 # Note, add entrypoint name to nerfstudio/scripts/completions/install.py to include CLI completion
 iris-export = 'iris.exporter:entrypoint'
