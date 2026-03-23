@@ -7,6 +7,7 @@ from pathlib import Path
 
 from nerfstudio.data.dataparsers.blender_dataparser import BlenderDataParserConfig, Blender
 from nerfstudio.data.dataparsers.nerfstudio_dataparser import NerfstudioDataParserConfig, Nerfstudio
+from nerfstudio.plugins.registry_dataparser import DataParserSpecification
 
 from iris.utils.utils import rotmat_to_quat, quat_multiply
 from iris.utils.ply_utils import read_ply
@@ -169,3 +170,6 @@ class IrisNerfstudio(Nerfstudio):
         out = extract_gaussians_from_ply(ply_gaussians, transform_matrix, scale_factor)
             
         return out
+
+IrisBlenderDataParser = DataParserSpecification(config=IrisBlenderDataParserConfig())
+IrisNerfstudioDataParser = DataParserSpecification(config=IrisNerfstudioDataParserConfig())
