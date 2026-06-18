@@ -94,6 +94,51 @@
             margin-right: -3px;
         }
 
+        /* Publication venue badge */
+        .publication-venue-wrapper {
+            display: flex;
+            justify-content: center;
+            margin: 0.25rem auto 1.5rem;
+        }
+
+        .publication-venue-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.65rem;
+            padding: 0.55rem 1.35rem;
+            background: linear-gradient(135deg, #f8fbff 0%, #eef4fc 100%);
+            border: 1px solid rgba(5, 90, 218, 0.18);
+            border-radius: 10px;
+            box-shadow: 0 2px 14px rgba(5, 90, 218, 0.08);
+            transition: box-shadow 0.2s ease, border-color 0.2s ease;
+        }
+
+        .publication-venue-badge:hover {
+            border-color: rgba(5, 90, 218, 0.32);
+            box-shadow: 0 4px 18px rgba(5, 90, 218, 0.12);
+        }
+
+        .publication-venue-label {
+            font-size: 0.95rem;
+            font-weight: 400;
+            color: #6c757d;
+            letter-spacing: 0.02em;
+            margin: 0;
+        }
+
+        .publication-venue-link {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #055ada;
+            text-decoration: none;
+            letter-spacing: 0.04em;
+        }
+
+        .publication-venue-link:hover {
+            color: #0346a8;
+            text-decoration: none;
+        }
+
         /* 3. Minor tweaks on very small screens */
         @media (max-width: 575.98px) {
             body {
@@ -119,6 +164,13 @@
         <div class="container-fluid mb-3">
             <!-- <h2 class="text-center" style="font-weight: bold; color: #007bff; margin-bottom: 5px;">[3DV 2026]</h2> -->
             <h1 class="text-center mb-2">IRIS: Intersection-aware Ray-based Implicit Editable Scenes</h1>
+        </div>
+
+        <div class="publication-venue-wrapper">
+            <div class="publication-venue-badge">
+                <span class="publication-venue-label">Accepted to</span>
+                <a href="https://eccv.ecva.net/" class="publication-venue-link" target="_blank" rel="noopener noreferrer">ECCV 2026</a>
+            </div>
         </div>
 
         <!-- Centered author section -->
