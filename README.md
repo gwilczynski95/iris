@@ -4,7 +4,7 @@
   <a href="https://github.com/gwilczynski95">Grzegorz Wilczyński<sup>1,3</sup></a>, 
   <a href="https://github.com/MikolajZielinski">Mikołaj Zieliński<sup>2</sup></a>, 
   <a href="https://scholar.google.com/citations?user=ef2YKtsAAAAJ&hl=pl&oi=sra">Krzysztof Byrski<sup>1</sup></a>, 
-  <a href="https://scholar.google.com/citations?user=eatkjjEAAAAJ&hl=en">Joanna Waczyńska<sup>1,3</sup></a>, 
+  <a href="https://scholar.google.com/citations?user=eatkjjEAAAAJ&hl=en">Joanna Szelewska<sup>1,3</sup></a>, 
   <a href="https://scholar.google.com/citations?user=3XvUbbMAAAAJ&hl=en">Dominik Belter<sup>2</sup></a>, 
   <a href="https://scholar.google.com/citations?user=0kp0MbgAAAAJ&hl=en">Przemysław Spurek<sup>1,3</sup></a>
 </p>
@@ -143,13 +143,25 @@ iris-render camera-path \
 If you found this work usefull, please consider citing:
 
 ``` bibtex
-    @inproceedings{wilczynski2026iris,
-        title={IRIS: Intersection-aware Ray-based Implicit Editable Scenes}, 
-        author={Grzegorz Wilczyński and Mikołaj Zieliński and Krzysztof Byrski and Joanna Waczyńska and Dominik Belter and Przemysław Spurek},
-        year={2026},
-        eprint={2603.15368},
-        archivePrefix={arXiv},
-        primaryClass={cs.CV},
-        url={https://arxiv.org/abs/2603.15368}, 
-  }
+@InProceedings{wilczynskiiris,
+  author="Wilczy{\'{n}}ski, Grzegorz
+  and Zieli{\'{n}}ski, Miko{\l}aj
+  and Byrski, Krzysztof
+  and Szelewska, Joanna
+  and Belter, Dominik
+  and Spurek, Przemys{\l}aw",
+  editor="Favaro, Paolo
+  and Kukelova, Zuzana
+  and Maki, Atsuto
+  and Rohrbach, Anna
+  and Schindler, Konrad
+  and Tombari, Federico",
+  title="IRIS: Intersection-aware Ray-based Implicit Editable Scenes",
+  booktitle="Computer Vision -- ECCV 2026",
+  year="2026",
+  publisher="Springer Nature Switzerland",
+  address="Cham",
+  pages="696--712",
+}
+
 ```
